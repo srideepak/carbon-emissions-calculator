@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-CAR_EMISSIONS_FACTOR = 2.3  # Example value for car emissions
-ELECTRICITY_EMISSIONS_FACTOR = 0.5  # Example value for electricity emissions
+CAR_EMISSIONS_FACTOR = 2.3  
+ELECTRICITY_EMISSIONS_FACTOR = 0.5 
 
 def calculate_emissions():
     try:
