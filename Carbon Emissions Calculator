@@ -1,0 +1,44 @@
+import tkinter as tk
+from tkinter import messagebox
+
+# Constants for carbon emission factors (kg CO2 per activity)
+CAR_EMISSIONS_FACTOR = 2.3  # Example value for car emissions
+ELECTRICITY_EMISSIONS_FACTOR = 0.5  # Example value for electricity emissions
+
+def calculate_emissions():
+    try:
+        car_distance = float(car_distance_entry.get())
+        electricity_consumption = float(electricity_consumption_entry.get())
+
+        # Calculate carbon emissions
+        car_emissions = car_distance * CAR_EMISSIONS_FACTOR
+        electricity_emissions = electricity_consumption * ELECTRICITY_EMISSIONS_FACTOR
+
+        total_emissions = car_emissions + electricity_emissions
+
+        # Display the result in a message box
+        message = f"Estimated Carbon Emissions:\n\nCar Emissions: {car_emissions} kg CO2\nElectricity Emissions: {electricity_emissions} kg CO2\n\nTotal Emissions: {total_emissions} kg CO2"
+        messagebox.showinfo("Carbon Emissions Estimation", message)
+    except ValueError:
+        messagebox.showerror("Error", "Please enter valid numerical values.")
+
+# Create the main window
+root = tk.Tk()
+root.title("Carbon Emissions Calculator")
+
+# Create and configure the GUI elements
+car_distance_label = tk.Label(root, text="Car Distance (km):")
+car_distance_label.pack()
+car_distance_entry = tk.Entry(root)
+car_distance_entry.pack()
+
+electricity_consumption_label = tk.Label(root, text="Electricity Consumption (kWh):")
+electricity_consumption_label.pack()
+electricity_consumption_entry = tk.Entry(root)
+electricity_consumption_entry.pack()
+
+calculate_button = tk.Button(root, text="Calculate Emissions", command=calculate_emissions)
+calculate_button.pack()
+
+# Start the GUI main loop
+root.mainloop()
