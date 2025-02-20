@@ -1,44 +1,86 @@
+CREATE DATABASE CarbonFootprintDB;
+
+USE CarbonFootprintDB;
+
+CREATE TABLE EmissionData (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    activity VARCHAR(255),
+    quantity FLOAT,
+    emission_factor FLOAT,
+    total_emission FLOAT,
+    entry_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+import mysql.connector
 import tkinter as tk
 from tkinter import messagebox
 
+# Database connection
+db = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="your_password",
+    database="CarbonFootprintDB"
+)
+cursor = db.cursor()
 
-CAR_EMISSIONS_FACTOR = 2.3  
-ELECTRICITY_EMISSIONS_FACTOR = 0.5 
+# Emission factors (kg CO2 per unit)
+EMISSION_FACTORS = {
+    "Electricity (kWh)": 0.92,
+    "Gas (cubic meter)": 2.2,
+    "Petrol (liters)": 2.3,
+    "Diesel (liters)": 2.7,
+    "Flight (km)": 0.15
+}
 
-def calculate_emissions():
-    try:
-        car_distance = float(car_distance_entry.get())
-        electricity_consumption = float(electricity_consumption_entry.get())
+# Function to calculate and store emissions
+def calculate_emission():
+    activity = activity_var.get()
+    quantity = float(quantity_entry.get())
 
-        # Calculate carbon emissions
-        car_emissions = car_distance * CAR_EMISSIONS_FACTOR
-        electricity_emissions = electricity_consumption * ELECTRICITY_EMISSIONS_FACTOR
+    if activity in EMISSION_FACTORS:
+        emission_factor = EMISSION_FACTORS[activity]
+        total_emission = quantity * emission_factor
 
-        total_emissions = car_emissions + electricity_emissions
+        # Insert data into MySQL
+        cursor.execute(
+            "INSERT INTO EmissionData (activity, quantity, emission_factor, total_emission) VALUES (%s, %s, %s, %s)",
+            (activity, quantity, emission_factor, total_emission)
+        )
+        db.commit()
 
-        # Display the result in a message box
-        message = f"Estimated Carbon Emissions:\n\nCar Emissions: {car_emissions} kg CO2\nElectricity Emissions: {electricity_emissions} kg CO2\n\nTotal Emissions: {total_emissions} kg CO2"
-        messagebox.showinfo("Carbon Emissions Estimation", message)
-    except ValueError:
-        messagebox.showerror("Error", "Please enter valid numerical values.")
+        messagebox.showinfo("Result", f"Total Emission: {total_emission:.2f} kg CO2")
+    else:
+        messagebox.showerror("Error", "Invalid activity selected")
 
-
+# GUI using Tkinter
 root = tk.Tk()
-root.title("Carbon Emissions Calculator")
+root.title("Carbon Emission Calculator")
 
+tk.Label(root, text="Select Activity:").grid(row=0, column=0)
+activity_var = tk.StringVar()
+activity_var.set(list(EMISSION_FACTORS.keys())[0])
+activity_menu = tk.OptionMenu(root, activity_var, *EMISSION_FACTORS.keys())
+activity_menu.grid(row=0, column=1)
 
-car_distance_label = tk.Label(root, text="Car Distance (km):")
-car_distance_label.pack()
-car_distance_entry = tk.Entry(root)
-car_distance_entry.pack()
+tk.Label(root, text="Enter Quantity:").grid(row=1, column=0)
+quantity_entry = tk.Entry(root)
+quantity_entry.grid(row=1, column=1)
 
-electricity_consumption_label = tk.Label(root, text="Electricity Consumption (kWh):")
-electricity_consumption_label.pack()
-electricity_consumption_entry = tk.Entry(root)
-electricity_consumption_entry.pack()
-
-calculate_button = tk.Button(root, text="Calculate Emissions", command=calculate_emissions)
-calculate_button.pack()
-
+calc_button = tk.Button(root, text="Calculate", command=calculate_emission)
+calc_button.grid(row=2, columnspan=2)
 
 root.mainloop()
+
+# Close DB connection on exit
+cursor.close()
+db.close()
+SELECT activity, SUM(total_emission) AS TotalCO2 
+FROM EmissionData 
+GROUP BY activity 
+ORDER BY TotalCO2 DESC;
+SELECT SUM(total_emission) AS WeeklyCO2 
+FROM EmissionData 
+WHERE entry_date >= NOW() - INTERVAL 7 DAY;
+SELECT activity, MAX(total_emission) AS MaxCO2 
+FROM EmissionData;
+
